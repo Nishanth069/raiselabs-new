@@ -8,23 +8,22 @@ import Navigation from "@/components/Navigation"
 import Footer from "@/components/Footer"
 import { getCategoryById, getProductsByCategory } from "@/lib/data"
 import { notFound } from "next/navigation"
-import { use } from "react"
 
-export default function CategoryPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function CategoryPage({ params }: { params: { id: string } }) {
+  const id = params?.id
+
   const category = getCategoryById(id)
-  const products = getProductsByCategory(id)
+  const products = getProductsByCategory(id) ?? []
 
-  if (!category) {
+  if (!id || !category) {
     notFound()
   }
 
   return (
     <>
       <Navigation />
-      
+
       <main className="pt-16 lg:pt-20">
-        {/* Back Button */}
         <div className="container mx-auto px-4 lg:px-8 py-8">
           <Link href="/products">
             <motion.div
@@ -37,7 +36,6 @@ export default function CategoryPage({ params }: { params: Promise<{ id: string 
           </Link>
         </div>
 
-        {/* Category Header */}
         <section className="pb-20">
           <div className="container mx-auto px-4 lg:px-8">
             <motion.div
@@ -59,7 +57,6 @@ export default function CategoryPage({ params }: { params: Promise<{ id: string 
           </div>
         </section>
 
-        {/* Products Grid */}
         <section className="pb-20 lg:pb-32">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -77,7 +74,6 @@ export default function CategoryPage({ params }: { params: Promise<{ id: string 
                       transition={{ duration: 0.3 }}
                       className="group relative h-[480px] rounded-2xl overflow-hidden bg-card border border-[#7F9DB1]/20 shadow-lg hover:shadow-2xl hover:border-[#7F9DB1]/40 flex flex-col"
                     >
-                      {/* Image */}
                       <div className="relative w-full h-[280px] flex-shrink-0">
                         <Image
                           src={product.image}
@@ -89,7 +85,6 @@ export default function CategoryPage({ params }: { params: Promise<{ id: string 
                         />
                       </div>
 
-                      {/* Content */}
                       <div className="p-6 flex flex-col flex-1">
                         <h3 className="text-xl font-bold mb-2 line-clamp-2 text-[#1a1f3a]">
                           {product.title}
@@ -108,7 +103,6 @@ export default function CategoryPage({ params }: { params: Promise<{ id: string 
               ))}
             </div>
 
-            {/* Empty state */}
             {products.length === 0 && (
               <motion.div
                 initial={{ opacity: 0 }}
