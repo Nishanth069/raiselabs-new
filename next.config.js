@@ -1,27 +1,32 @@
-import type { NextConfig } from "next";
-import path from "node:path";
-const loaderPath = require.resolve('orchids-visual-edits/loader.js');
+const path = require("node:path");
 
-const nextConfig: NextConfig = {
+const loaderPath = require.resolve("orchids-visual-edits/loader.js");
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '**',
+        protocol: "https",
+        hostname: "**",
       },
       {
-        protocol: 'http',
-        hostname: '**',
+        protocol: "http",
+        hostname: "**",
       },
     ],
   },
-  outputFileTracingRoot: path.resolve(__dirname, '../../'),
+
+  outputFileTracingRoot: path.resolve(__dirname, "../../"),
+
   typescript: {
     ignoreBuildErrors: true,
   },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -32,13 +37,14 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+
   turbopack: {
     rules: {
       "*.{jsx,tsx}": {
-        loaders: [loaderPath]
-      }
-    }
-  }
-}
+        loaders: [loaderPath],
+      },
+    },
+  },
+};
 
-export default nextConfig;
+module.exports = nextConfig;
