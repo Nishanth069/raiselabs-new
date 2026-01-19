@@ -9,34 +9,49 @@ import Footer from "@/components/Footer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { getProductById, getCategoryById } from "@/lib/data"
-import { notFound } from "next/navigation"
-import { use } from "react"
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo"
 
-export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const product = getProductById(id)
+export default function ProductDetailPage({ params }: { params: { id: string } }) {
+  const id = params?.id
+  const product = id ? getProductById(id) : null
 
-  if (!product) {
-    notFound()
+  // ✅ Client-safe "not found" (instead of notFound())
+  if (!id || !product) {
+    return (
+      <>
+        <Navigation />
+        <main className="pt-16 lg:pt-20">
+          <div className="container mx-auto px-4 lg:px-8 py-20 text-center">
+            <h1 className="text-3xl font-bold text-[#1a1f3a]">Product Not Found</h1>
+            <p className="text-muted-foreground mt-2">
+              The product you are looking for does not exist.
+            </p>
+            <Link href="/products" className="inline-block mt-6 text-[#7F9DB1] underline">
+              Back to Products
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
   }
 
   const category = getCategoryById(product.category)
-  
+
   const productSchema = generateProductSchema({
     name: product.title,
     description: product.fullDescription,
     image: product.image,
     sku: product.id,
     brand: "Raise Lab Equipment",
-    category: category?.name
+    category: category?.name,
   })
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: "Home", url: "/" },
     { name: "Products", url: "/products" },
     { name: category?.name || "Category", url: `/products/category/${product.category}` },
-    { name: product.title, url: `/products/${product.id}` }
+    { name: product.title, url: `/products/${product.id}` },
   ])
 
   return (
@@ -52,7 +67,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       />
 
       <Navigation />
-      
+
       <main className="pt-16 lg:pt-20">
         {/* Back Button */}
         <div className="container mx-auto px-4 lg:px-8 py-8">
@@ -89,8 +104,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
-                
-                {/* Floating badge */}
+
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -116,12 +130,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <h1 className="text-4xl lg:text-6xl font-bold mb-4 text-[#1a1f3a]">
                     {product.title}
                   </h1>
-                  <p className="text-xl text-muted-foreground">
-                    {product.description}
-                  </p>
+                  <p className="text-xl text-muted-foreground">{product.description}</p>
                 </div>
 
-                {/* Rating */}
                 <div className="flex items-center gap-2">
                   <div className="flex" aria-label="5 star rating">
                     {[...Array(5)].map((_, i) => (
@@ -131,7 +142,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <span className="text-sm text-muted-foreground">(4.9 from 250+ reviews)</span>
                 </div>
 
-                {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 pt-6">
                   <Link href="/contact" className="flex-1">
                     <Button size="lg" className="w-full text-base bg-[#1a1f3a] hover:bg-[#1a1f3a]/90 text-white">
@@ -140,15 +150,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </Button>
                   </Link>
                   <Link href="/contact" className="flex-1">
-                    <Button size="lg" variant="outline" className="w-full text-base border-[#7F9DB1]/30 hover:border-[#7F9DB1] hover:bg-[#7F9DB1]/5 text-[#1a1f3a]">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full text-base border-[#7F9DB1]/30 hover:border-[#7F9DB1] hover:bg-[#7F9DB1]/5 text-[#1a1f3a]"
+                    >
                       Contact Sales
                     </Button>
                   </Link>
                 </div>
 
-                {/* Quick features */}
                 <div className="grid grid-cols-2 gap-4 pt-6">
-                  {product.features.slice(0, 4).map((feature, index) => (
+                  {(product.features ?? []).slice(0, 4).map((feature, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 10 }}
@@ -169,11 +182,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         {/* Tabs Section */}
         <section className="py-12 lg:py-20 bg-muted/30">
           <div className="container mx-auto px-4 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <Tabs defaultValue="description" className="w-full">
                 <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 mb-8 lg:mb-12">
                   <TabsTrigger value="description" className="text-base">Description</TabsTrigger>
@@ -192,15 +201,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     <p className="text-lg text-muted-foreground leading-relaxed mb-8">
                       {product.fullDescription}
                     </p>
-                    <div className="prose prose-lg max-w-none">
-                      <h3 className="text-2xl font-bold mb-4 text-[#1a1f3a]">Why Choose This Instrument?</h3>
-                      <p className="text-muted-foreground">
-                        This pharmaceutical testing instrument combines precision engineering with user-friendly operation. 
-                        Built to meet international pharmacopoeia standards (USP, BP, EP, IP), it delivers reliable, 
-                        reproducible results for quality control laboratories. From research and development to production 
-                        quality assurance, this equipment ensures compliance and accuracy.
-                      </p>
-                    </div>
                   </motion.div>
                 </TabsContent>
 
@@ -213,7 +213,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   >
                     <h2 className="text-3xl font-bold mb-8 text-[#1a1f3a]">Key Features</h2>
                     <div className="grid md:grid-cols-2 gap-6">
-                      {product.features.map((feature, index) => (
+                      {(product.features ?? []).map((feature, index) => (
                         <motion.div
                           key={index}
                           initial={{ opacity: 0, x: -20 }}
@@ -239,7 +239,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   >
                     <h2 className="text-3xl font-bold mb-8 text-[#1a1f3a]">Technical Specifications</h2>
                     <div className="space-y-4">
-                      {product.specs.map((spec, index) => (
+                      {(product.specs ?? []).map((spec, index) => (
                         <motion.div
                           key={index}
                           initial={{ opacity: 0, x: -20 }}
@@ -260,7 +260,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </section>
 
-        {/* CTA Section */}
         <section className="py-20 lg:py-32" aria-labelledby="cta-heading">
           <div className="container mx-auto px-4 lg:px-8">
             <motion.div
